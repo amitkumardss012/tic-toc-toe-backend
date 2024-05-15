@@ -22,20 +22,20 @@ app.use(express.urlencoded({ extended: true }))
 app.use(cors(corsOptions))
 
 
-// app.post("/name", async (req, res) => {
-//     try {
-//         const name = req.body.name;
-//         if (!name) {
-//             res.status(400).json({ message: "please enter your name" })
-//         }
-//         const user = await User.create({ name });
+app.post("/name", async (req, res) => {
+    try {
+        const name = req.body.name;
+        if (!name) {
+            res.status(400).json({ message: "please enter your name" })
+        }
+        const user = await User.create({ name });
 
-//         res.status(200).json({ message: "user created successfull", user });
-//     } catch (error) {
-//         console.log(error)
-//         res.json({ error })
-//     }
-// })
+        res.status(200).json({ message: "user created successfull", user });
+    } catch (error) {
+        console.log(error)
+        res.json({ error })
+    }
+})
 
 app.get("/", (req, res) => {
     res.send("hellow world")
