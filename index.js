@@ -1,10 +1,11 @@
 import { createServer } from 'http'
 import { Server } from 'socket.io'
 import { connectionMongoDB } from "./db.js"
-import express, { urlencoded } from 'express'
+import express from 'express'
 import cors from 'cors'
 import { User } from './user.js'
 import jwt from 'jsonwebtoken'
+import cookieParser from 'cookie-parser'
 
 
 // all the instanse 
@@ -17,28 +18,16 @@ connectionMongoDB("mongodb+srv://amitkumardss068:pkObmtXCmHN1bXrl@cluster0.7xxwc
 const PORT = 4000;
 const corsOptions = {
     origin: "http://localhost:5173/",
+    credentials: true,
 }
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cors(corsOptions))
+app.use(cookieParser())
 
 
 app.get("/", (req, res) => {
     res.send("hellow world")
-})
-app.post("/name", async (req, res) => {
-    try {
-        const name = req.body.name;
-        if (!name) {
-            res.status(400).json({ message: "please enter your name" })
-        }
-        const user = await User.create({ name });
-
-        res.status(200).json({ message: "user created successfull", user });
-    } catch (error) {
-        console.log(error)
-        res.json({ error })
-    }
 })
 
 app.post("/signup", async (req, res) => {
@@ -62,7 +51,7 @@ app.post("/signup", async (req, res) => {
             name, email, password
         })
 
-        const userId = newUser?.id;
+        const userId = newUser?._id;
         const JWT_SECRET = "amitkumar";
 
         const token = jwt.sign({ userId }, JWT_SECRET, { expiresIn: "30d" })
@@ -95,7 +84,7 @@ app.post("/login", async (req, res) => {
         }
 
         const user = await User?.findOne({ email });
-        const userID = user?.id;
+        const userID = user?._id;
 
         if (!user) {
             return res.status(401).json({
@@ -129,10 +118,65 @@ app.post("/login", async (req, res) => {
     }
 })
 
+app.get("/logout", (req, res) => {
+    return res.status(200).cookie("token", "", { expires: new Date(0), httpOnly: true }).json({
+        message: "Logged out successfully",
+        success: true,
+    });
+});
+
+app.get('/user', async (req, res) => {
+    const token = req.cookies.token;
+
+    if (!token) {
+        return res.status(400).json({ message: 'User unauthorized', success: false });
+    }
+
+    try {
+        const decoded = jwt.verify(token, 'amitkumar');
+        const loginUserID = decoded.userID;
+
+        const user = await User.findById(loginUserID);
+
+        if (!user) {
+            return res.status(404).json({ message: 'User not found', success: false });
+        }
+
+        return res.status(200).json({ message: 'User found', success: true, user });
+    } catch (err) {
+        console.error(err);
+        return res.status(401).json({ message: 'Invalid token', success: false });
+    }
+});
+
+
+const allUsers = [];
+const allRooms = [];
 
 io.on("connection", (socket) => {
     // console.log(socket)
     console.log("connection established" + socket.id)
+    allUsers[socket.id] = {
+        socket: socket,
+        online: true,
+    }
+
+    socket.on("disconnect", () => {
+        const currentUser = allUsers[socket.id];
+        currentUser.online = false;
+        currentUser.playing = false;
+
+        for (let i = 0; i < allRooms.length; i++) {
+            const { player1, player2 } = allRooms[i];
+            if (player1.socket.id === socket.id) {
+                player2.socket.emit("opponentLeftTheMatch");
+                break;
+            }
+            if (player2.socket.id === socket.id) {
+                player1.socket.emit("opponentLeftTheMatch");
+            }
+        }
+    })
 })
 
 
