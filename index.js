@@ -12,7 +12,7 @@ const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
     cors: {
-        origin: ["https://tic-toc-toe-frontend.vercel.app", "http://localhost:5173"],
+        origin: ["https://tic-toc-toe-frontend.vercel.app", "http://localhost:5173", "https://tic-toc-toe-amit.netlify.app"],
         METHODS: ["GET", "POST", "PUT", "DELETE"],
         credentials: true,
     }
