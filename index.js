@@ -1,4 +1,4 @@
-import { createServer } from "http";
+import { METHODS, createServer } from "http";
 import { Server } from "socket.io";
 import { connectionMongoDB } from "./db.js";
 import express from "express";
@@ -11,14 +11,19 @@ import cookieParser from "cookie-parser";
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: "https://tic-toc-toe-frontend.vercel.app",
+    cors: {
+        origin: ["https://tic-toc-toe-frontend.vercel.app", "http://localhost:5173"],
+        METHODS: ["GET", "POST", "PUT", "DELETE"],
+        credentials: true,
+    }
 });
 connectionMongoDB(
     "mongodb+srv://amitkumardss068:pkObmtXCmHN1bXrl@cluster0.7xxwco6.mongodb.net/TicTocToe"
 );
 const PORT = 4000;
 const corsOptions = {
-    origin: "https://tic-toc-toe-frontend.vercel.app",
+    origin: ["https://tic-toc-toe-frontend.vercel.app", "http://localhost:5173"],
+    METHODS: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
 };
 app.use(express.json());
