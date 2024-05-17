@@ -11,14 +11,14 @@ import cookieParser from "cookie-parser";
 const app = express();
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
-    cors: "http://localhost:5173",
+    cors: "https://tic-toc-toe-frontend.vercel.app",
 });
 connectionMongoDB(
     "mongodb+srv://amitkumardss068:pkObmtXCmHN1bXrl@cluster0.7xxwco6.mongodb.net/TicTocToe"
 );
 const PORT = 4000;
 const corsOptions = {
-    origin: "http://localhost:5173",
+    origin: "https://tic-toc-toe-frontend.vercel.app",
     credentials: true,
 };
 app.use(express.json());
